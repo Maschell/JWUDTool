@@ -26,7 +26,8 @@ usage:
                                         folder of this .jar is found
  -compress                              Compresses the input to a .wux file.
  -decrypt                               Decrypts full the game partition of the given wud.
- -decryptFile <regular expression>      Decrypts full the game partition of the given wud.
+ -decryptFile <regular expression>      Decrypts files of the game partition that match the regular
+                                        expression of the given wud.
  -extract <all|content|ticket|hashes>   Extracts files from the game partition of the given wud
                                         (Arguments optional)
  -help                                  shows this text
