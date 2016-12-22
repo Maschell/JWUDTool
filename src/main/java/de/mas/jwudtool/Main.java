@@ -25,7 +25,7 @@ import de.mas.jnus.lib.utils.Utils;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        System.out.println("JWUDTool 0.1 - Maschell");
+        System.out.println("JWUDTool 0.1b - Maschell");
         System.out.println();
         Options options = getOptions();
         
