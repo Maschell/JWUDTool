@@ -1,11 +1,11 @@
-#JWUDTool 0.1
+# JWUDTool 0.1
 
 Here is just a simple program that uses the (http://gbatemp.net/threads/jnuslib-java-nus-library.452954/).  
 The usage should be pretty self explaining.
 
 **STILL EXPERIMENTAL. Bugs may occur, please report them!**
 
-##Features
+## Features
 
 * Compressing .wud and splitted wud files into .wux
 * Extracting .app/-h3/.tmd/.cert/.tik files from a .wud/.wux or splitted .wud
@@ -14,7 +14,7 @@ The usage should be pretty self explaining.
 * Decrypting specific files the game partition from a .wud/.wux or splitted .wud
 * Verify a image / Compare two images (for example a .wud with .wux to make sure its legit)
 
-##Usage
+## Usage
 
 Optional:
 - Copy the common.key into the folder next to the .jar or provide the key via the command line
@@ -39,11 +39,78 @@ usage:
                                         folder of the wud image is found
  -verify <wudimage1|wudimage2>          Compares two WUD images to find differences
  ```
- 
-##Compiling
-Add the "jnuslib.jar" into the library path and load the other dependicies throuugh maven.
+# Examples
+## Getting .app files from an Wii U Image:
+### Extract .app etc. from a WUD:
+Get .app files from "game.wud" to the folder "extracted" with game.key in the same folder
+```
+java -jar JWUDTool.jar -in "game.wud" -out "extracted" -extract all
+```
 
-##Credits
+### Extract .app etc. from a WUX (compressed WUD):
+Get .app files from "game.wux" to the folder "extracted" with game.key in the same folder
+```
+java -jar JWUDTool.jar -in "game.wux" -out "extracted" -extract all
+```
+
+### Extract .app etc. from a splitted WUD (dump with wudump):
+Get .app files from "game_part1.wud" to the folder "extracted" with game.key in the same folder
+```
+java -jar JWUDTool.jar -in "game_part1.wud" -out "extracted" -extract all
+```
+
+## Compressing into .wux examples:
+### Compress a .wud to .wux:[/B]
+Compress a "game.wud" to "game.wux"
+```
+java -jar JWUDTool.jar -in "game.wud" -compress
+```
+
+### Compress a splitted game_part1.wud to .wux:
+Compress a "game_part1.wud" from a wudump dump to "game.wux"
+```
+java -jar JWUDTool.jar -in "game_part1.wud" -compress
+```
+
+## Decryption game files examples:
+### Decrypt a WUD image to game files
+Input can be a .wud, game_part1.wud or a .wux. This decrypted the full game partition.
+Given a game.key and common.key in the same folder.
+```
+java -jar JWUDTool.jar -in "game.wud" -decrypt //WUD
+java -jar JWUDTool.jar -in "game.wux" -decrypt //WUX
+java -jar JWUDTool.jar -in "game_part1.wud" -decrypt //game_part1
+```
+
+### Decrypt a single file from an WUD
+Input can be a .wud, game_part1.wud or a .wux. This decrypted the full game partition.
+Given a game.key and common.key in the same folder.
+
+Extracting the code/app.xml file.
+```
+java -jar JWUDTool.jar -in "game.wud" -decryptFile /code/app.xml
+java -jar JWUDTool.jar -in "game.wux" -decryptFile /code/app.xml
+java -jar JWUDTool.jar -in "game_part1.wud" -decryptFile /code/app.xml
+```
+
+Extracting all .bfstm files.
+```
+java -jar JWUDTool.jar -in "game.wud" -decryptFile /.*.bfstm
+java -jar JWUDTool.jar -in "game.wux"  -decryptFile /.*.bfstm
+java -jar JWUDTool.jar -in "game_part1.wud" -decryptFile /.*.bfstm
+```
+
+Extracting the folder /content/Sound
+```
+java -jar JWUDTool.jar -in "game.wud" -decryptFile /content/Sound/.*
+java -jar JWUDTool.jar -in "game.wux"  -decryptFile /content/Sound/.*
+java -jar JWUDTool.jar -in "game_part1.wud" -decryptFile /content/Sound/.*
+```
+ 
+## Compiling
+Add the "jnuslib.jar" into the library path and load the other dependicies through maven.
+
+## Credits
 Maschell  
 
 Thanks to:  
