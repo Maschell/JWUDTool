@@ -1,4 +1,4 @@
-# JWUDTool 0.1
+# JWUDTool 0.2
 
 Here is just a simple program that uses the (http://gbatemp.net/threads/jnuslib-java-nus-library.452954/).  
 The usage should be pretty self explaining.
@@ -8,8 +8,10 @@ The usage should be pretty self explaining.
 ## Features
 
 * Compressing .wud and splitted wud files into .wux
+* Decompressing a .wux back to .wud
+* Extracting from the GI or GM partition
 * Extracting .app/-h3/.tmd/.cert/.tik files from a .wud/.wux or splitted .wud
-* Exctracting just the contents/hashes/ticket.
+* Extracting just the contents/hashes/ticket.
 * Decrypting the full game partition from a .wud/.wux or splitted .wud
 * Decrypting specific files the game partition from a .wud/.wux or splitted .wud
 * Verify a image / Compare two images (for example a .wud with .wux to make sure its legit)
@@ -24,7 +26,9 @@ Optional:
 usage:
  -commonkey <WiiU common key>           Optional. HexString. Will be used if no "common.key" in the
                                         folder of this .jar is found
+ -dev                                   Required when using discs without a titlekey.
  -compress                              Compresses the input to a .wux file.
+ -decompress                            Decompresses the input to a .wud file.
  -decrypt                               Decrypts full the game partition of the given wud.
  -decryptFile <regular expression>      Decrypts files of the game partition that match the regular
                                         expression of the given wud.
@@ -32,7 +36,7 @@ usage:
                                         (Arguments optional)
  -help                                  shows this text
  -in <input file>                       Input file. Can be a .wux, .wud or a game_part1.wud
- -noVerify                              Disables verification after compressing
+ -noVerify                              Disables verification after (de)compressing
  -out <output path>                     The path where the result will be saved
  -overwrite                             Optional. Overwrites existing files
  -titlekey <WUD title key>              Optional. HexString. Will be used if no "game.key" in the
@@ -108,7 +112,7 @@ java -jar JWUDTool.jar -in "game_part1.wud" -decryptFile /content/Sound/.*
 ```
  
 ## Compiling
-Add the "jnuslib.jar" into the library path and load the other dependicies through maven.
+`clean assembly:single package`
 
 ## Credits
 Maschell  
