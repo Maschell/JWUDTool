@@ -41,7 +41,7 @@ public class Main {
     private static final String OPTION_DEVMODE = "dev";
 
     public static void main(String[] args) throws Exception {
-        System.out.println("JWUDTool 0.2 - Maschell");
+        System.out.println("JWUDTool 0.2a - Maschell");
         System.out.println();
         Options options = getOptions();
 
