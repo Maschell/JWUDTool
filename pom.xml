@@ -49,7 +49,7 @@
 		<dependency>
 			<groupId>com.github.Maschell</groupId>
 			<artifactId>JNUSLib</artifactId>
-			<version>8016b3e</version>
+			<version>8124bb2</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
