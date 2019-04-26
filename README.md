@@ -1,4 +1,4 @@
-# JWUDTool 0.2
+# JWUDTool
 
 Here is just a simple program that uses the (http://gbatemp.net/threads/jnuslib-java-nus-library.452954/).  
 The usage should be pretty self explaining.
@@ -9,11 +9,11 @@ The usage should be pretty self explaining.
 
 * Compressing .wud and splitted wud files into .wux
 * Decompressing a .wux back to .wud
-* Extracting from the GI or GM partition
+* Extracting titles from the GI or GM partition
 * Extracting .app/-h3/.tmd/.cert/.tik files from a .wud/.wux or splitted .wud
 * Extracting just the contents/hashes/ticket.
-* Decrypting the full game partition from a .wud/.wux or splitted .wud
-* Decrypting specific files the game partition from a .wud/.wux or splitted .wud
+* Decrypting the full partitions from a .wud/.wux or splitted .wud
+* Decrypting specific files any partition from a .wud/.wux or splitted .wud
 * Verify a image / Compare two images (for example a .wud with .wux to make sure its legit)
 
 ## Usage
