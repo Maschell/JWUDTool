@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -17,10 +18,11 @@ import org.apache.commons.cli.UnrecognizedOptionException;
 import de.mas.wiiu.jnus.DecryptionService;
 import de.mas.wiiu.jnus.ExtractionService;
 import de.mas.wiiu.jnus.NUSTitle;
-import de.mas.wiiu.jnus.NUSTitleLoaderWUD;
-import de.mas.wiiu.jnus.Settings;
+import de.mas.wiiu.jnus.WUDLoader;
 import de.mas.wiiu.jnus.WUDService;
 import de.mas.wiiu.jnus.implementations.wud.WUDImage;
+import de.mas.wiiu.jnus.implementations.wud.parser.WUDInfo;
+import de.mas.wiiu.jnus.interfaces.FSTDataProvider;
 import de.mas.wiiu.jnus.utils.Utils;
 import lombok.val;
 
@@ -39,6 +41,9 @@ public class Main {
     private static final String OPTION_DECRYPT_FILE = "decryptFile";
     private static final String OPTION_EXTRACT = "extract";
     private static final String OPTION_DEVMODE = "dev";
+    private static byte[] commonKey;
+
+    private static final String HOMEPATH = System.getProperty("user.home") + File.separator + ".wiiu";
 
     public static void main(String[] args) throws Exception {
         System.out.println("JWUDTool 0.2a - Maschell");
@@ -69,7 +74,8 @@ public class Main {
         boolean devMode = false;
         byte[] titlekey = null;
 
-        readKey();
+        readKey(new File(HOMEPATH + File.separator + "common.key")).ifPresent(key -> Main.commonKey = key);
+        readKey(new File("common.key")).ifPresent(key -> Main.commonKey = key);
 
         if (cmd.hasOption(OPTION_HELP)) {
             showHelp(options);
@@ -87,7 +93,7 @@ public class Main {
             String commonKey = cmd.getOptionValue(OPTION_COMMON_KEY);
             byte[] key = Utils.StringToByteArray(commonKey);
             if (key.length == 0x10) {
-                Settings.commonKey = key;
+                Main.commonKey = key;
                 System.out.println("Commonkey was set to: " + Utils.ByteArrayToString(key));
             }
         }
@@ -196,15 +202,19 @@ public class Main {
 
         System.out.println("Extracting: " + inputFile.getAbsolutePath());
 
-        List<NUSTitle> titles = null;
+        WUDInfo wudInfo = null;
         if (!devMode) {
-            titles = NUSTitleLoaderWUD.loadNUSTitle(inputFile.getAbsolutePath(), titlekey);
+            wudInfo = WUDLoader.load(inputFile.getAbsolutePath(), titlekey);
         } else {
-            titles = NUSTitleLoaderWUD.loadNUSTitleDev(inputFile.getAbsolutePath());
+            wudInfo = WUDLoader.loadDev(inputFile.getAbsolutePath());
         }
-        if (titles == null || titles.isEmpty()) {
+
+        if (wudInfo == null) {
+            System.out.println("Failed to load WUX " + inputFile.getAbsolutePath());
             return;
         }
+
+        List<NUSTitle> titles = WUDLoader.getGamePartionsAsNUSTitles(wudInfo, Main.commonKey);
         System.out.println("Found " + titles.size() + " titles on the Disc.");
         for (val title : titles) {
             String newOutput = output;
@@ -241,34 +251,36 @@ public class Main {
 
         System.out.println("Decrypting: " + inputFile.getAbsolutePath());
 
-        List<NUSTitle> titles = null;
+        WUDInfo wudInfo = null;
         if (!devMode) {
-            titles = NUSTitleLoaderWUD.loadNUSTitle(inputFile.getAbsolutePath(), titlekey);
+            wudInfo = WUDLoader.load(inputFile.getAbsolutePath(), titlekey);
         } else {
-            titles = NUSTitleLoaderWUD.loadNUSTitleDev(inputFile.getAbsolutePath());
+            wudInfo = WUDLoader.loadDev(inputFile.getAbsolutePath());
         }
 
-        if (titles == null || titles.isEmpty()) {
+        if (wudInfo == null) {
+            System.out.println("Failed to load Wii U Disc Image " + inputFile.getAbsolutePath());
             return;
         }
-        System.out.println("Found " + titles.size() + " titles on the Disc.");
-       
-        for (val title : titles) {
+        
+        List<FSTDataProvider> partitions = WUDLoader.getPartitonsAsFSTDataProvider(wudInfo, Main.commonKey);
+        System.out.println("Found " + partitions.size() + " titles on the Disc.");
+
+        for (val dp : partitions) {
             String newOutput = output;
-            System.out.println("Decrypting files in Title " + String.format("%016X", title.getTMD().getTitleID()));
+            System.out.println("Decrypting files in partition " + dp.getName());
             if (newOutput == null) {
-                newOutput = String.format("%016X", title.getTMD().getTitleID());
+                newOutput = dp.getName();
             } else {
-                newOutput += File.separator + String.format("%016X", title.getTMD().getTitleID());
+                newOutput += File.separator + dp.getName();
             }
 
             File outputFolder = new File(newOutput);
 
             System.out.println("To the folder: " + outputFolder.getAbsolutePath());
-            title.setSkipExistingFiles(!overwrite);
-            DecryptionService decryption = DecryptionService.getInstance(title);
+            DecryptionService decryption = DecryptionService.getInstance(dp);
 
-            decryption.decryptFSTEntriesTo(regex, outputFolder.getAbsolutePath());
+            decryption.decryptFSTEntriesTo(regex, outputFolder.getAbsolutePath(), !overwrite);
         }
         System.out.println("Decryption done");
     }
@@ -302,22 +314,22 @@ public class Main {
         }
         System.out.println("Parsing WUD image.");
         WUDImage image = new WUDImage(inputImage);
-        File outputFile = null;
+        Optional<File> outputFile = Optional.empty();
         if (!decompress) {
             outputFile = WUDService.compressWUDToWUX(image, output, overwrite);
-            if (outputFile != null) {
+            if (outputFile.isPresent()) {
                 System.out.println("Compression successful!");
             }
         } else {
             outputFile = WUDService.decompressWUX(image, output, overwrite);
-            if (outputFile != null) {
+            if (outputFile.isPresent()) {
                 System.out.println("Decompression successful!");
             }
         }
 
         if (verify) {
-            if (outputFile != null) {
-                WUDImage image2 = new WUDImage(outputFile);
+            if (outputFile.isPresent()) {
+                WUDImage image2 = new WUDImage(outputFile.get());
                 if (WUDService.compareWUDImage(image, image2)) {
                     System.out.println("Compressed files is valid.");
                 } else {
@@ -329,13 +341,18 @@ public class Main {
         }
     }
 
-    private static void readKey() throws IOException {
-        File file = new File("common.key");
+    private static Optional<byte[]> readKey(File file) {
         if (file.isFile()) {
-            byte[] key = Files.readAllBytes(file.toPath());
-            Settings.commonKey = key;
-            System.out.println("Commonkey was set to: " + Utils.ByteArrayToString(key));
+            byte[] key;
+            try {
+                key = Files.readAllBytes(file.toPath());
+                if (key != null && key.length == 16) {
+                    return Optional.of(key);
+                }
+            } catch (IOException e) {
+            }
         }
+        return Optional.empty();
     }
 
     private static Options getOptions() {
