@@ -112,7 +112,7 @@ java -jar JWUDTool.jar -in "game_part1.wud" -decryptFile /content/Sound/.*
 ```
  
 ## Compiling
-`clean assembly:single package`
+`mvn clean package`
 
 ## Credits
 Maschell  

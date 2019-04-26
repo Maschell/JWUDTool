@@ -4,40 +4,71 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.mas</groupId>
 	<artifactId>jwudtool</artifactId>
-	<version>0.2a</version>
+	<version>0.3</version>
 
-	<properties>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
-	</properties>
+	<profiles>
+		<profile>
+			<id>normal-build</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<jar_dir>./target</jar_dir>
+			</properties>
+		</profile>
+		<profile>
+			<id>ci-build</id>
+			<activation>
+				<property>
+					<name>ci-build</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<properties>
+				<jar_dir>./ci</jar_dir>
+			</properties>
+		</profile>
+	</profiles>
 
 	<build>
+		<sourceDirectory>src</sourceDirectory>
 		<plugins>
 			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>3.1.0</version>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.7.0</version>
 				<configuration>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-					<archive>
-						<manifest>
-							<mainClass>de.mas.jwudtool.Main</mainClass>
-						</manifest>
-					</archive>
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
 				<executions>
 					<execution>
-						<id>make-assembly</id> <!-- this is used for inheritance merges -->
-						<phase>package</phase> <!-- bind to the packaging phase -->
+						<id>make-assembly</id>
+						<configuration>
+							<archive>
+								<manifest>
+									<mainClass>de.mas.jwudtool.Main</mainClass>
+								</manifest>
+							</archive>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+							<!-- Stick jar in root dir, if you want -->
+							<outputDirectory>${jar_dir}</outputDirectory>
+							<finalName>JWUDTool-${project.version}-nightly</finalName>
+						</configuration>
+						<phase>package</phase>
 						<goals>
-							<goal>single</goal>
+							<goal>attached</goal>
 						</goals>
 					</execution>
 				</executions>
 			</plugin>
 		</plugins>
 	</build>
+	
 	<repositories>
 		<repository>
 			<id>jitpack.io</id>           <!-- JitPack allows github repo to be used as a maven repo -->
