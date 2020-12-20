@@ -39,7 +39,7 @@ usage:
  -noVerify                              Disables verification after (de)compressing
  -out <output path>                     The path where the result will be saved
  -overwrite                             Optional. Overwrites existing files
- -titlekey <WUD title key>              Optional. HexString. Will be used if no "game.key" in the
+ -titleKey <WUD title key>              Optional. HexString. Will be used if no "game.key" in the
                                         folder of the wud image is found
  -verify <wudimage1|wudimage2>          Compares two WUD images to find differences
  ```
