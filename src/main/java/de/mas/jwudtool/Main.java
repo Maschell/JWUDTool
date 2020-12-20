@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -21,7 +23,7 @@ import de.mas.wiiu.jnus.NUSTitle;
 import de.mas.wiiu.jnus.WUDLoader;
 import de.mas.wiiu.jnus.WUDService;
 import de.mas.wiiu.jnus.implementations.wud.WUDImage;
-import de.mas.wiiu.jnus.implementations.wud.parser.WUDInfo;
+import de.mas.wiiu.jnus.implementations.wud.WiiUDisc;
 import de.mas.wiiu.jnus.interfaces.FSTDataProvider;
 import de.mas.wiiu.jnus.utils.Utils;
 import lombok.val;
@@ -46,7 +48,7 @@ public class Main {
     private static final String HOMEPATH = System.getProperty("user.home") + File.separator + ".wiiu";
 
     public static void main(String[] args) throws Exception {
-        System.out.println("JWUDTool 0.2a - Maschell");
+        System.out.println("JWUDTool 0.4 - Maschell");
         System.out.println();
         Options options = getOptions();
 
@@ -202,7 +204,7 @@ public class Main {
 
         System.out.println("Extracting: " + inputFile.getAbsolutePath());
 
-        WUDInfo wudInfo = null;
+        WiiUDisc wudInfo = null;
         if (!devMode) {
             wudInfo = WUDLoader.load(inputFile.getAbsolutePath(), titlekey);
         } else {
@@ -251,7 +253,7 @@ public class Main {
 
         System.out.println("Decrypting: " + inputFile.getAbsolutePath());
 
-        WUDInfo wudInfo = null;
+        WiiUDisc wudInfo = null;
         if (!devMode) {
             wudInfo = WUDLoader.load(inputFile.getAbsolutePath(), titlekey);
         } else {
@@ -262,17 +264,27 @@ public class Main {
             System.out.println("Failed to load Wii U Disc Image " + inputFile.getAbsolutePath());
             return;
         }
-        
+
         List<FSTDataProvider> partitions = WUDLoader.getPartitonsAsFSTDataProvider(wudInfo, Main.commonKey);
         System.out.println("Found " + partitions.size() + " titles on the Disc.");
 
+        Set<String> paritionNames = new TreeSet<>();
         for (val dp : partitions) {
+            String partitionName = dp.getName();
+
+            int i = 0;
+            while (paritionNames.contains(partitionName)) {
+                partitionName = dp.getName() + "_" + i++;
+            }
+
+            paritionNames.add(partitionName);
+
             String newOutput = output;
-            System.out.println("Decrypting files in partition " + dp.getName());
+            System.out.println("Decrypting files in partition " + partitionName);
             if (newOutput == null) {
-                newOutput = dp.getName();
+                newOutput = partitionName;
             } else {
-                newOutput += File.separator + dp.getName();
+                newOutput += File.separator + partitionName;
             }
 
             File outputFolder = new File(newOutput);
