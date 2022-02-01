@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.mas</groupId>
 	<artifactId>jwudtool</artifactId>
-	<version>0.4</version>
+	<version>0.5</version>
 
 	<profiles>
 		<profile>
@@ -79,7 +79,7 @@
 		<dependency>
 			<groupId>com.github.Maschell</groupId>
 			<artifactId>JNUSLib</artifactId>
-			<version>90e83fe</version>
+			<version>822cf2d</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->

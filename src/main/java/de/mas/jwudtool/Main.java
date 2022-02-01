@@ -58,7 +58,7 @@ public class Main {
         }
 
         CommandLineParser parser = new DefaultParser();
-        CommandLine cmd = null;
+        CommandLine cmd;
         try {
             cmd = parser.parse(options, args);
         } catch (MissingArgumentException e) {
@@ -76,13 +76,17 @@ public class Main {
         boolean devMode = false;
         byte[] titlekey = null;
 
-        readKey(new File(HOMEPATH + File.separator + "common.key")).ifPresent(key -> Main.commonKey = key);
-        readKey(new File("common.key")).ifPresent(key -> Main.commonKey = key);
-
         if (cmd.hasOption(OPTION_HELP)) {
             showHelp(options);
             return;
         }
+
+        if (cmd.hasOption(OPTION_DEVMODE)) {
+            devMode = true;
+        }
+
+        readKey(new File(HOMEPATH + File.separator + (devMode ? "devcommon.key" : "common.key"))).ifPresent(key -> Main.commonKey = key);
+        readKey(new File("common.key")).ifPresent(key -> Main.commonKey = key);
 
         if (cmd.hasOption(OPTION_IN)) {
             input = cmd.getOptionValue(OPTION_IN);
@@ -112,10 +116,6 @@ public class Main {
 
         if (cmd.hasOption(OPTION_OVERWRITE)) {
             overwrite = true;
-        }
-
-        if (cmd.hasOption(OPTION_DEVMODE)) {
-            devMode = true;
         }
 
         if (cmd.hasOption(OPTION_COMPRESS)) {
@@ -171,6 +171,7 @@ public class Main {
                 return;
             }
         }
+        System.out.println("Done!");
     }
 
     private static void extract(String input, String output, boolean devMode, boolean overwrite, byte[] titlekey, String arg) throws Exception {
@@ -183,37 +184,33 @@ public class Main {
         boolean extractHashes = false;
 
         switch (arg) {
-        case "all":
-            extractAll = true;
-            break;
-        case "content":
-            extractContent = true;
-            break;
-        case "ticket":
-            extractTicket = true;
-            break;
-        case "hashes":
-            extractHashes = true;
-            break;
-        default:
-            System.out.println("Argument not found:" + arg);
-            return;
+            case "all":
+                extractAll = true;
+                break;
+            case "content":
+                extractContent = true;
+                break;
+            case "ticket":
+                extractTicket = true;
+                break;
+            case "hashes":
+                extractHashes = true;
+                break;
+            default:
+                System.out.println("Argument not found:" + arg);
+                return;
         }
 
+        assert input != null;
         File inputFile = new File(input);
 
         System.out.println("Extracting: " + inputFile.getAbsolutePath());
 
-        WiiUDisc wudInfo = null;
+        WiiUDisc wudInfo;
         if (!devMode) {
             wudInfo = WUDLoader.load(inputFile.getAbsolutePath(), titlekey);
         } else {
             wudInfo = WUDLoader.loadDev(inputFile.getAbsolutePath());
-        }
-
-        if (wudInfo == null) {
-            System.out.println("Failed to load WUX " + inputFile.getAbsolutePath());
-            return;
         }
 
         List<NUSTitle> titles = WUDLoader.getGamePartionsAsNUSTitles(wudInfo, Main.commonKey);
@@ -248,21 +245,17 @@ public class Main {
     private static void decryptFile(String input, String output, String regex, boolean devMode, boolean overwrite, byte[] titlekey) throws Exception {
         if (input == null) {
             System.out.println("You need to provide an input file");
+            return;
         }
         File inputFile = new File(input);
 
         System.out.println("Decrypting: " + inputFile.getAbsolutePath());
 
-        WiiUDisc wudInfo = null;
+        WiiUDisc wudInfo;
         if (!devMode) {
             wudInfo = WUDLoader.load(inputFile.getAbsolutePath(), titlekey);
         } else {
             wudInfo = WUDLoader.loadDev(inputFile.getAbsolutePath());
-        }
-
-        if (wudInfo == null) {
-            System.out.println("Failed to load Wii U Disc Image " + inputFile.getAbsolutePath());
-            return;
         }
 
         List<FSTDataProvider> partitions = WUDLoader.getPartitonsAsFSTDataProvider(wudInfo, Main.commonKey);
@@ -326,7 +319,7 @@ public class Main {
         }
         System.out.println("Parsing WUD image.");
         WUDImage image = new WUDImage(inputImage);
-        Optional<File> outputFile = Optional.empty();
+        Optional<File> outputFile;
         if (!decompress) {
             outputFile = WUDService.compressWUDToWUX(image, output, overwrite);
             if (outputFile.isPresent()) {
@@ -358,10 +351,10 @@ public class Main {
             byte[] key;
             try {
                 key = Files.readAllBytes(file.toPath());
-                if (key != null && key.length == 16) {
+                if (key.length == 16) {
                     return Optional.of(key);
                 }
-            } catch (IOException e) {
+            } catch (IOException ignored) {
             }
         }
         return Optional.empty();
